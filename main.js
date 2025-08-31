@@ -121,7 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.scanOverlay.classList.add('hidden');
         startAnalyzingAnimation();
 
-        const apiKey = typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : '';
+        const apiKey = (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY)
+            || (typeof GEMINI_API_KEY !== 'undefined' ? GEMINI_API_KEY : '');
         if (!apiKey || apiKey === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
             console.error("API Key is missing or is the placeholder. Please add your Gemini API Key to env.js");
             showMessage("API Key is not configured.", "error");
