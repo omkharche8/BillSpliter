@@ -619,8 +619,59 @@ document.addEventListener('DOMContentLoaded', () => {
         hidePayToModal();
         shareSummary(recipient);
     }
-    function captureAndProcess() { vibrate(100); const c = document.createElement('canvas'); c.width = elements.cameraPreview.videoWidth; c.height = elements.cameraPreview.videoHeight; c.getContext('2d').drawImage(elements.cameraPreview, 0, 0); stopCamera(); processImageWithGemini(c.toDataURL('image/jpeg')); }
-    function handleFileUpload(e) { const f = e.target.files[0]; if (f) { const r = new FileReader(); r.onload = (e) => processImageWithGemini(e.target.result); r.readAsDataURL(f); } }
+    function captureAndProcess() {
+        vibrate(100);
+        const vw = elements.cameraPreview.videoWidth;
+        const vh = elements.cameraPreview.videoHeight;
+        const maxDim = 1600;
+        const scale = Math.min(1, maxDim / Math.max(vw, vh));
+        const cw = Math.round(vw * scale);
+        const ch = Math.round(vh * scale);
+        const c = document.createElement('canvas');
+        c.width = cw; c.height = ch;
+        c.getContext('2d').drawImage(elements.cameraPreview, 0, 0, cw, ch);
+        stopCamera();
+        processImageWithGemini(c.toDataURL('image/jpeg', 0.8));
+    }
+
+    async function scaleDataUrlIfNeeded(dataUrl, maxDim = 1600, quality = 0.8) {
+        try {
+            const img = new Image();
+            const loaded = new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+            img.src = dataUrl;
+            await loaded;
+            const width = img.naturalWidth || img.width;
+            const height = img.naturalHeight || img.height;
+            const max = Math.max(width, height);
+            if (max <= maxDim) return dataUrl;
+            const scale = maxDim / max;
+            const targetW = Math.round(width * scale);
+            const targetH = Math.round(height * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = targetW; canvas.height = targetH;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, targetW, targetH);
+            return canvas.toDataURL('image/jpeg', quality);
+        } catch {
+            return dataUrl;
+        }
+    }
+
+    function handleFileUpload(e) {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = async (ev) => {
+            const raw = typeof ev.target.result === 'string' ? ev.target.result : '';
+            if (!raw) { processImageWithGemini(ev.target.result); return; }
+            const optimized = await scaleDataUrlIfNeeded(raw, 1600, 0.8);
+            processImageWithGemini(optimized);
+        };
+        r.readAsDataURL(f);
+    }
     function updatePeopleCount(c) {
         let n = parseInt(elements.peopleCount.textContent) + c;
         if (n < 2) {
