@@ -668,6 +668,26 @@ input:focus {
   text-align: left;
 }
 
+.input-with-prefix {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.input-with-prefix .prefix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border: 2px solid var(--text-color);
+  border-radius: var(--border-radius);
+  background-color: var(--surface-color);
+  padding: 0 6px;
+}
+.input-with-prefix input[type="number"] {
+  height: 48px;
+}
+
 #split-people-list {
   display: flex;
   flex-direction: column;

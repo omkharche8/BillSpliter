@@ -203,8 +203,11 @@
                         <input type="number" id="edit-service-charge" placeholder="Service Charge" step="0.01" min="0">
                     </div>
                     <div>
-                        <label for="edit-discounts">Discounts (-)</label>
-                        <input type="number" id="edit-discounts" placeholder="Discounts" step="0.01" min="0">
+                        <label for="edit-discounts">Discounts</label>
+                        <div class="input-with-prefix">
+                            <span class="prefix">-</span>
+                            <input type="number" id="edit-discounts" placeholder="Discounts" step="0.01" min="0">
+                        </div>
                     </div>
                     <div>
                         <label for="edit-total">Grand Total</label>

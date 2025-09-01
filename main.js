@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.reviewScanAgainBtn.addEventListener('click', resetToStart);
         elements.editTax.addEventListener('input', updateEditModalTotals);
         elements.editServiceCharge.addEventListener('input', updateEditModalTotals);
-        elements.editDiscounts.addEventListener('input', updateEditModalTotals);
+        elements.editDiscounts.addEventListener('input', () => { sanitizeDiscountInput(); updateEditModalTotals(); });
     }
     function openNativeCamera() {
         const input = elements.billCameraInput;
@@ -196,7 +196,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            state.taxAndTotals = data.summary;
+            const s = data.summary || {};
+            state.taxAndTotals = {
+                subtotal: toDecimal(s.subtotal).toNumber(),
+                tax: toDecimal(s.tax).toNumber(),
+                service_charge: toDecimal(s.service_charge).toNumber(),
+                discounts: Math.abs(toDecimal(s.discounts).toNumber()),
+                total: toDecimal(s.total).toNumber()
+            };
             state.originalBillData = JSON.parse(JSON.stringify({ billItems: state.billItems, taxAndTotals: state.taxAndTotals }));
             renderBillForReview();
             switchToScreen('bill-review-screen');
@@ -246,7 +253,8 @@ document.addEventListener('DOMContentLoaded', () => {
         reviewHTML += `<div class="receipt-total-line"><span>Subtotal:</span> <span>₹${taxAndTotals.subtotal.toFixed(2)}</span></div>`;
         if (taxAndTotals.tax > 0) reviewHTML += `<div class="receipt-total-line"><span>Total Tax:</span> <span>₹${taxAndTotals.tax.toFixed(2)}</span></div>`;
         if (taxAndTotals.service_charge > 0) reviewHTML += `<div class="receipt-total-line"><span>Service Charge:</span> <span>₹${taxAndTotals.service_charge.toFixed(2)}</span></div>`;
-        if (taxAndTotals.discounts > 0) reviewHTML += `<div class="receipt-total-line"><span>Discounts:</span> <span>-₹${taxAndTotals.discounts.toFixed(2)}</span></div>`;
+        const dVal = Math.abs(toDecimal(taxAndTotals.discounts).toNumber());
+        reviewHTML += `<div class="receipt-total-line"><span>Discounts:</span> <span>-₹${dVal.toFixed(2)}</span></div>`;
         reviewHTML += `<div class="receipt-divider"></div>`;
         reviewHTML += `<div class="receipt-total-line receipt-grand-total"><span>Grand Total:</span> <span>₹${taxAndTotals.total.toFixed(2)}</span></div>`;
         elements.billReviewContainer.innerHTML = reviewHTML;
@@ -362,6 +370,15 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.editTotal.value = subtotal.plus(tax).plus(service).minus(discounts).toFixed(2);
     }
 
+    function sanitizeDiscountInput() {
+        if (!elements.editDiscounts) return;
+        let raw = (elements.editDiscounts.value || '').toString();
+        raw = raw.replace(/[^0-9.]/g, '');
+        const parts = raw.split('.');
+        if (parts.length > 2) raw = parts[0] + '.' + parts.slice(1).join('');
+        elements.editDiscounts.value = raw;
+    }
+
     function handleSaveChanges() {
         const wasOnResultsScreen = state.currentScreen === 'results-screen';
         const editedItems = [];
@@ -392,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             subtotal: toDecimal(elements.editSubtotal.value).toNumber(),
             tax: toDecimal(elements.editTax.value).toNumber(),
             service_charge: toDecimal(elements.editServiceCharge.value).toNumber(),
-            discounts: toDecimal(elements.editDiscounts.value).toNumber(),
+            discounts: Math.abs(toDecimal(elements.editDiscounts.value).toNumber()),
             total: toDecimal(elements.editTotal.value).toNumber(),
         };
 
