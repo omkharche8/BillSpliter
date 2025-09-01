@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elements = {
         scanBtn: document.getElementById('scan-btn'), uploadBtn: document.getElementById('upload-btn'),
         billUploadInput: document.getElementById('bill-upload'), cameraWrapper: document.getElementById('camera-wrapper'),
+        billCameraInput: document.getElementById('bill-camera'),
         cameraPreview: document.getElementById('camera-preview'), captureBtn: document.getElementById('capture-btn'),
         scanOverlay: document.getElementById('scan-overlay'), progressContainer: document.getElementById('progress-container'),
         peopleCount: document.getElementById('people-count'), incrementPeopleBtn: document.getElementById('increment-people'),
@@ -72,10 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function setupEventListeners() {
-        elements.scanBtn.addEventListener('click', startCamera);
+        elements.scanBtn.addEventListener('click', openNativeCamera);
         elements.captureBtn.addEventListener('click', captureAndProcess);
         elements.uploadBtn.addEventListener('click', () => elements.billUploadInput.click());
         elements.billUploadInput.addEventListener('change', handleFileUpload);
+        if (elements.billCameraInput) {
+            elements.billCameraInput.addEventListener('change', handleFileUpload);
+        }
         elements.incrementPeopleBtn.addEventListener('click', () => updatePeopleCount(1));
         elements.decrementPeopleBtn.addEventListener('click', () => updatePeopleCount(-1));
         elements.peopleNextBtn.addEventListener('click', validateAndProceedToDishes);
@@ -105,6 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.editServiceCharge.addEventListener('input', updateEditModalTotals);
         elements.editDiscounts.addEventListener('input', updateEditModalTotals);
     }
+    function openNativeCamera() {
+        const input = elements.billCameraInput;
+        if (input) {
+            // Clear previous selection so the same photo can be re-chosen if needed
+            input.value = '';
+            input.click();
+        } else {
+            // Fallback to in-app camera preview
+            startCamera();
+        }
+    }
+
 
     // --- Core App Flow ---
     function switchToScreen(newScreenId) {
