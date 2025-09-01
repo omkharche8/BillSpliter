@@ -108,6 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.editTax.addEventListener('input', updateEditModalTotals);
         elements.editServiceCharge.addEventListener('input', updateEditModalTotals);
         elements.editDiscounts.addEventListener('input', () => { sanitizeDiscountInput(); updateEditModalTotals(); });
+        const discountType = document.getElementById('edit-discount-type');
+        if (discountType) discountType.addEventListener('change', updateEditModalTotals);
     }
     function openNativeCamera() {
         const input = elements.billCameraInput;
@@ -366,8 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tax = toDecimal(elements.editTax.value);
         const service = toDecimal(elements.editServiceCharge.value);
-        const discounts = toDecimal(elements.editDiscounts.value);
+        const discountRaw = toDecimal(elements.editDiscounts.value);
+        const discountTypeEl = document.getElementById('edit-discount-type');
+        const isPercent = discountTypeEl && discountTypeEl.value === 'percent';
+        const discounts = isPercent ? subtotal.times(discountRaw).div(100) : discountRaw;
         elements.editTotal.value = subtotal.plus(tax).plus(service).minus(discounts).toFixed(2);
+        const discountAppliedEl = document.getElementById('edit-discount-applied');
+        if (discountAppliedEl) {
+            const applied = discounts.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber();
+            discountAppliedEl.textContent = `-₹${applied.toFixed(2)}`;
+        }
     }
 
     function sanitizeDiscountInput() {
@@ -405,11 +415,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         state.billItems = editedItems;
+        const discountRawForSave = toDecimal(elements.editDiscounts.value);
+        const discountTypeEl2 = document.getElementById('edit-discount-type');
+        const isPercentSave = discountTypeEl2 && discountTypeEl2.value === 'percent';
+        const discountAbsAmount = isPercentSave ? toDecimal(elements.editSubtotal.value).times(discountRawForSave).div(100) : discountRawForSave;
         state.taxAndTotals = {
             subtotal: toDecimal(elements.editSubtotal.value).toNumber(),
             tax: toDecimal(elements.editTax.value).toNumber(),
             service_charge: toDecimal(elements.editServiceCharge.value).toNumber(),
-            discounts: Math.abs(toDecimal(elements.editDiscounts.value).toNumber()),
+            discounts: Math.abs(discountAbsAmount.toNumber()),
             total: toDecimal(elements.editTotal.value).toNumber(),
         };
 
