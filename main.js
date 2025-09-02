@@ -738,10 +738,10 @@ document.addEventListener('DOMContentLoaded', () => {
         "Money can't buy happiness, but it can buy pizza, which is close.",
         "Analyzing the financial damage...",
         "Let's hope this receipt doesn't need a therapist.",
-        "Who ordered the 'I'll just have a water' and then ate half my fries?",
+        "Who ordered the 'I will just have a water' and then ate half my fries?",
         "Counting every bean. Literally."
     ];
-    const analyzingEmojis = ["🧾", "🤔", "🤑", "🤯", "✨", "➗", "🧮", "🤓", "🧐", "算出", "💸"];
+    const analyzingEmojis = ["🧾", "🤔", "🤑", "🤯", "✨", "➗", "🧮", "🤓", "🧐", "💸"];
     function startAnalyzingAnimation() { const u = () => { elements.funnyQuote.textContent = funnyQuotes[Math.floor(Math.random() * funnyQuotes.length)]; elements.analyzingEmoji.textContent = analyzingEmojis[Math.floor(Math.random() * analyzingEmojis.length)]; }; u(); state.quoteInterval = setInterval(() => { elements.funnyQuote.classList.add('fade-out'); setTimeout(() => { u(); elements.funnyQuote.classList.remove('fade-out'); }, 300); }, 3000); }
     function stopAnalyzingAnimation() { clearInterval(state.quoteInterval); state.quoteInterval = null; }
 
