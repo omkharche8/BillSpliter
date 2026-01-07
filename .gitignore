@@ -1,5 +1,8 @@
-# Ignore environment file
+# Ignore environment files
 env.js
+.env
+.env.local
+.env.*.local
 
 # OS files
 .DS_Store
